@@ -58,3 +58,21 @@ if __name__ == "__main__":
     })
     print(f"Compute average response: {response}")
     print(f"Actual average: {np.mean(datasets[0])}")
+    
+    # variance
+    response = client.send_request(server, {
+        'action': 'compute_variance',
+        'key': 'dataset_1'
+    })
+    
+    print(f"Compute variance response: {response}")
+    print(f"Actual variance: {np.var(datasets[1])}")
+    
+    # standard deviation
+    response = client.send_request(server, {
+        'action': 'sd',
+        'key': 'dataset_2'
+    })
+    
+    print(f"Compute standard deviation response: {response}")
+    print(f"Actual standard deviation: {np.std(datasets[2])}")
