@@ -33,6 +33,13 @@ if __name__ == "__main__":
         })
         print(f"Compute average response: {response}")
         print(f"Actual average: {np.mean(data)}")
+        
+        response = client.send_request(server, {
+            'action': 'compute_average',
+            'key': f'dataset_{i}'
+        })
+        print(f"Compute average response: {response}")
+        print(f"Actual average: {np.mean(data)}")
 
         all_data.extend(data)
 
@@ -43,3 +50,11 @@ if __name__ == "__main__":
     })
     print(f"\nCompute overall average response: {response}")
     print(f"Actual overall average: {np.mean(all_data)}")
+
+
+    response = client.send_request(server, {
+        'action': 'compute_average',
+        'key': 'dataset_0'
+    })
+    print(f"Compute average response: {response}")
+    print(f"Actual average: {np.mean(datasets[0])}")

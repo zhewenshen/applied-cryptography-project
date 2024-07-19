@@ -22,14 +22,13 @@ class Server:
             return serialize({'status': 'error', 'message': 'Invalid action'})
 
     def store_data(self, context: ts.Context, key: str, data: bytes, size: int) -> Dict[str, str]:
-        if key not in self.storage:
-            self.storage[key] = []
-            self.running_sums[key] = ts.ckks_vector_from(context, data).sum()
-            self.data_counts[key] = size
-        else:
-            self.storage[key].append(data)
-            self.running_sums[key] += ts.ckks_vector_from(context, data).sum()
-            self.data_counts[key] += size
+        print(f"size: {size}")
+        if key in self.storage:
+            return {'status': 'error', 'message': 'Key already exists'}
+        
+        self.storage[key] = data
+        self.running_sums[key] = ts.ckks_vector_from(context, data).sum()
+        self.data_counts[key] = size
         
         return {'status': 'success', 'message': 'Data stored'}
 
@@ -37,24 +36,25 @@ class Server:
         if key not in self.storage:
             return {'status': 'error', 'message': 'Key not found'}
         
+        print(f"key: {key}")
+        
         encrypted_sum = self.running_sums[key]
         data_count = self.data_counts[key]
         encrypted_average = encrypted_sum * (1 / data_count)
         
+        print(data_count)
+        
         return {'status': 'success', 'result': encrypted_average.serialize()}
 
     def compute_overall_average(self, context: ts.Context, keys: List[str]) -> Dict[str, Any]:
-        overall_sum = None
+        overall_sum = [0]
         overall_count = 0
         
         for key in keys:
             if key not in self.storage:
                 return {'status': 'error', 'message': f'Key {key} not found'}
             
-            if overall_sum is None:
-                overall_sum = self.running_sums[key]
-            else:
-                overall_sum += self.running_sums[key]
+            overall_sum += self.running_sums[key]
             
             overall_count += self.data_counts[key]
         
