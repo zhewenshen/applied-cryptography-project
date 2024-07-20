@@ -5,3 +5,4 @@
 ## TODO List
 
 - [ ] Implement secure key exchange
+- [ ] Implement digital signatures (will replace the existing HMAC)
