@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from client import Client
 from server import Server
+from cryptography.fernet import Fernet
 
 
 @pytest.fixture
