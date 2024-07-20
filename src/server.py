@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 from utils import serialize, deserialize
 from model import EncryptedLR
+from cryptography.fernet import Fernet
 import tenseal as ts
 
 
@@ -12,8 +13,14 @@ class Server:
         self.data_counts: Dict[str, int] = {}
         self.training_data: Dict[str, Dict[str, List[ts.CKKSVector]]] = {}
         self.models: Dict[str, EncryptedLR] = {}
+        self.key = b""
+
+    def set_key(self, key: bytes):
+        self.key = key
 
     def handle_request(self, request: str) -> str:
+        cur_key = Fernet(self.key)
+        request = cur_key.decrypt(request)
         request_dict = deserialize(request)
         context = ts.context_from(bytes.fromhex(request_dict['context']))
 

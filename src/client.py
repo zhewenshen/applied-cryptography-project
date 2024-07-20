@@ -1,4 +1,5 @@
 import tenseal as ts
+from cryptography.fernet import Fernet
 from context_gen import TenSEALContext
 from rich.console import Console
 from rich.progress import track
@@ -15,6 +16,11 @@ class Client:
         self.model_inference_context = TenSEALContext.create_machine_learning_context()
         self.test_data = {}
         self.console = Console()
+        self.key = b""
+    
+    def set_key(self, key: bytes):
+        self.key = key
+
 
     def encrypt_data(self, data: List[float], context: ts.Context) -> str:
         encrypted_data = ts.ckks_vector(context, data)
@@ -53,8 +59,11 @@ class Client:
                 'x': [self.encrypt_data(x, context) for x in request['inference_data']['x']]
             }
 
+        cur_key = Fernet(self.key)
         serialized_request = serialize(request)
-        response = server.handle_request(serialized_request)
+        cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
+        cipher_text = b"abcd" + cipher_text
+        response = server.handle_request(cipher_text)
         response_dict = deserialize(response)
 
         if 'result' in response_dict:
