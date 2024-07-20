@@ -10,7 +10,12 @@ from server import Server
 
 @pytest.fixture
 def client_server():
-    return Client(), Server()
+    client = Client()
+    server = Server()
+    key = Fernet.generate_key();
+    client.set_key(key)
+    server.set_key(key)
+    return client, server
 
 
 def print_server_response(message):
