@@ -41,7 +41,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## How to Cite
 
-If you use this project in your research, please cite it as follows:
+If you use this project in your work, please cite it as follows:
 
 ```bibtex
 @software{TBD,
