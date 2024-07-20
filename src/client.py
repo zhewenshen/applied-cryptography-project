@@ -62,9 +62,9 @@ class Client:
         cur_key = Fernet(self.key)
         serialized_request = serialize(request)
         cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
-        cipher_text = b"abcd" + cipher_text
+        # cipher_text = b"abcd" + cipher_text
         response = server.handle_request(cipher_text)
-        response_dict = deserialize(response)
+        response_dict = deserialize(cur_key.decrypt(response))
 
         if 'result' in response_dict:
             if isinstance(response_dict['result'], str):

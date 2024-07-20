@@ -25,31 +25,31 @@ class Server:
         context = ts.context_from(bytes.fromhex(request_dict['context']))
 
         if request_dict['action'] == 'store':
-            return serialize(self.store_data(context, request_dict['key'], request_dict['data'], request_dict['size']))
+            return cur_key.encrypt(serialize(self.store_data(context, request_dict['key'], request_dict['data'], request_dict['size'])).encode('utf-8'))
         elif request_dict['action'] == 'compute_average':
-            return serialize(self.compute_average(context, request_dict['key']))
+            return cur_key.encrypt(serialize(self.compute_average(context, request_dict['key'])).encode('utf-8'))
         elif request_dict['action'] == 'compute_variance':
-            return serialize(self.compute_variance(context, request_dict['key']))
+            return cur_key.encrypt(serialize(self.compute_variance(context, request_dict['key'])).encode('utf-8'))
         elif request_dict['action'] == 'sd':
-            return serialize(self.compute_standard_deviation(context, request_dict['key']))
+            return cur_key.encrypt(serialize(self.compute_standard_deviation(context, request_dict['key'])).encode('utf-8'))
         elif request_dict['action'] == 'compute_overall_average':
-            return serialize(self.compute_overall_average(context, request_dict['keys']))
+            return cur_key.encrypt(serialize(self.compute_overall_average(context, request_dict['keys'])).encode('utf-8'))
         elif request_dict['action'] == 'store_training_data':
-            return serialize(self.store_training_data(context, request_dict['key'], request_dict['training_data']))
+            return cur_key.encrypt(serialize(self.store_training_data(context, request_dict['key'], request_dict['training_data'])).encode('utf-8'))
         elif request_dict['action'] == 'initialize_model':
-            return serialize(self.initialize_model(context, request_dict['key'], request_dict['n_features']))
+            return cur_key.encrypt(serialize(self.initialize_model(context, request_dict['key'], request_dict['n_features'])).encode('utf-8'))
         elif request_dict['action'] == 'train_epoch':
-            return serialize(self.train_epoch(context, request_dict['key']))
+            return cur_key.encrypt(serialize(self.train_epoch(context, request_dict['key'])).encode('utf-8'))
         elif request_dict['action'] == 'get_model_params':
-            return serialize(self.get_model_params(request_dict['key']))
+            return cur_key.encrypt(serialize(self.get_model_params(request_dict['key'])).encode('utf-8'))
         elif request_dict['action'] == 'set_model_params':
-            return serialize(self.set_model_params(context, request_dict['key'], request_dict['params']))
+            return cur_key.encrypt(serialize(self.set_model_params(context, request_dict['key'], request_dict['params'])).encode('utf-8'))
         elif request_dict['action'] == 'predict':
-            return serialize(self.predict(context, request_dict['key'], request_dict['inference_data']['x']))
+            return cur_key.encrypt(serialize(self.predict(context, request_dict['key'], request_dict['inference_data']['x'])).encode('utf-8'))
         elif request_dict['action'] == 'predict_all':
-            return serialize(self.predict_all(context, request_dict['key'], request_dict['inference_data']['x']))
+            return cur_key.encrypt(serialize(self.predict_all(context, request_dict['key'], request_dict['inference_data']['x'])).encode('utf-8'))
         else:
-            return serialize({'status': 'error', 'message': 'Invalid action'})
+            return cur_key.encrypt(serialize({'status': 'error', 'message': 'Invalid action'}).encode('utf-8'))
 
     def store_data(self, context: ts.Context, key: str, data: str, size: int) -> Dict[str, str]:
         if key in self.storage:
