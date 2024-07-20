@@ -21,7 +21,8 @@ class Client:
         return encrypted_data.serialize().hex()
 
     def decrypt_data(self, serialized_data: str, context: ts.Context) -> List[float]:
-        encrypted_data = ts.ckks_vector_from(context, bytes.fromhex(serialized_data))
+        encrypted_data = ts.ckks_vector_from(
+            context, bytes.fromhex(serialized_data))
         return encrypted_data.decrypt()
 
     def send_request(self, server: 'Server', request: Dict[str, Any]) -> Dict[str, Any]:
@@ -57,10 +58,11 @@ class Client:
         response_dict = deserialize(response)
 
         if 'result' in response_dict:
-            if isinstance(response_dict['result'], bytes):
+            if isinstance(response_dict['result'], str):
                 response_dict['result'] = self.decrypt_data(
                     response_dict['result'], context)
             elif isinstance(response_dict['result'], list):
+                print(type(response_dict['result']))
                 response_dict['result'] = [self.decrypt_data(
                     r, context) for r in response_dict['result']]
 

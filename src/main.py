@@ -113,15 +113,15 @@ def test_machine_learning(client, server):
     print("Prediction response:", response)
 
     if response['status'] == 'success':
-        print("Decrypted prediction:", response['result'][0])
+        print(f"Actual value: {y_test[0]}")
 
 
 if __name__ == "__main__":
     client = Client()
     server = Server()
 
-    #print("Testing Statistical Computations:")
-    #test_statistical_computations(client, server)
+    print("Testing Statistical Computations:")
+    test_statistical_computations(client, server)
 
     print("\nTesting Machine Learning:")
     test_machine_learning(client, server)
