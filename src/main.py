@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from client import Client
 from server import Server
+from cryptography.fernet import Fernet
+from utils import serialize, deserialize
 
 
 def test_statistical_computations(client, server):
@@ -119,6 +121,15 @@ def test_machine_learning(client, server):
 if __name__ == "__main__":
     client = Client()
     server = Server()
+    key = Fernet.generate_key();
+    client.set_key(key)
+    server.set_key(key)
+
+    # cur_key = Fernet(key)
+    # serialized_request = serialize("beep")
+    # cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
+    # request = cur_key.decrypt(cipher_text)
+    # print(request)
 
     print("Testing Statistical Computations:")
     test_statistical_computations(client, server)
