@@ -15,7 +15,7 @@ class Server:
 
     def handle_request(self, request: str) -> str:
         request_dict = deserialize(request)
-        context = ts.context_from(request_dict['context'])
+        context = ts.context_from(bytes.fromhex(request_dict['context']))
 
         if request_dict['action'] == 'store':
             return serialize(self.store_data(context, request_dict['key'], request_dict['data'], request_dict['size']))
@@ -44,12 +44,13 @@ class Server:
         else:
             return serialize({'status': 'error', 'message': 'Invalid action'})
 
-    def store_data(self, context: ts.Context, key: str, data: bytes, size: int) -> Dict[str, str]:
+    def store_data(self, context: ts.Context, key: str, data: str, size: int) -> Dict[str, str]:
         if key in self.storage:
             return {'status': 'error', 'message': 'Key already exists'}
 
-        self.storage[key] = data
-        vector = ts.ckks_vector_from(context, data)
+        bs = bytes.fromhex(data)
+        self.storage[key] = bs
+        vector = ts.ckks_vector_from(context, bs)
         self.running_sums[key] = vector.sum()
         self.squared_sums[key] = (vector * vector).sum()
         self.data_counts[key] = size
@@ -64,7 +65,7 @@ class Server:
         data_count = self.data_counts[key]
         encrypted_average = encrypted_sum * (1 / data_count)
 
-        return {'status': 'success', 'result': encrypted_average.serialize()}
+        return {'status': 'success', 'result': encrypted_average.serialize().hex()}
 
     def compute_variance(self, context: ts.Context, key: str) -> Dict[str, Any]:
         if key not in self.storage:
@@ -79,7 +80,7 @@ class Server:
         encrypted_variance = encrypted_mean_of_squares - \
             (encrypted_mean * encrypted_mean)
 
-        return {'status': 'success', 'result': encrypted_variance.serialize()}
+        return {'status': 'success', 'result': encrypted_variance.serialize().hex()}
 
     def compute_standard_deviation(self, context: ts.Context, key: str) -> Dict[str, Any]:
         return {'status': 'error', 'message': 'Not implemented'}
@@ -97,15 +98,17 @@ class Server:
 
         encrypted_average = overall_sum * (1 / overall_count)
 
-        return {'status': 'success', 'result': encrypted_average.serialize()}
+        return {'status': 'success', 'result': encrypted_average.serialize().hex()}
 
     def store_training_data(self, context: ts.Context, key: str, training_data: Dict[str, List[bytes]]) -> Dict[str, str]:
         if key in self.training_data:
             return {'status': 'error', 'message': 'Key already exists'}
 
         self.training_data[key] = {
-            'x': [ts.ckks_vector_from(context, data) for data in training_data['x']],
-            'y': [ts.ckks_vector_from(context, data) for data in training_data['y']]
+            'x': [ts.ckks_vector_from(context, bytes.fromhex(data))
+                  for data in training_data['x']],
+            'y': [ts.ckks_vector_from(context, bytes.fromhex(data))
+                  for data in training_data['y']]
         }
 
         return {'status': 'success', 'message': 'Training data stored'}
@@ -150,15 +153,15 @@ class Server:
 
         return {'status': 'success', 'message': 'Model parameters updated'}
 
-    def predict(self, context: ts.Context, key: str, x: List[bytes]) -> Dict[str, Any]:
+    def predict(self, context: ts.Context, key: str, x: List[str]) -> Dict[str, Any]:
         if key not in self.models:
             return {'status': 'error', 'message': 'Model not found'}
 
         model = self.models[key]
-        enc_x = ts.ckks_vector_from(context, x[0])
+        enc_x = ts.ckks_vector_from(context, bytes.fromhex(x[0]))
         prediction = model.forward(enc_x)
 
-        return {'status': 'success', 'result': prediction.serialize()}
+        return {'status': 'success', 'result': prediction.serialize().hex()}
 
     def predict_all(self, context: ts.Context, key: str, x: List[bytes]) -> Dict[str, Any]:
         if key not in self.models:
@@ -167,8 +170,8 @@ class Server:
         model = self.models[key]
         predictions = []
         for enc_x in x:
-            enc_x_vector = ts.ckks_vector_from(context, enc_x)
+            enc_x_vector = ts.ckks_vector_from(context, bytes.fromhex(enc_x))
             prediction = model.forward(enc_x_vector)
-            predictions.append(prediction.serialize())
+            predictions.append(prediction.serialize().hex())
 
         return {'status': 'success', 'result': predictions}

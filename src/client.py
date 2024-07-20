@@ -16,12 +16,12 @@ class Client:
         self.test_data = {}
         self.console = Console()
 
-    def encrypt_data(self, data: List[float], context: ts.Context) -> bytes:
+    def encrypt_data(self, data: List[float], context: ts.Context) -> str:
         encrypted_data = ts.ckks_vector(context, data)
-        return encrypted_data.serialize()
+        return encrypted_data.serialize().hex()
 
-    def decrypt_data(self, serialized_data: bytes, context: ts.Context) -> List[float]:
-        encrypted_data = ts.ckks_vector_from(context, serialized_data)
+    def decrypt_data(self, serialized_data: str, context: ts.Context) -> List[float]:
+        encrypted_data = ts.ckks_vector_from(context, bytes.fromhex(serialized_data))
         return encrypted_data.decrypt()
 
     def send_request(self, server: 'Server', request: Dict[str, Any]) -> Dict[str, Any]:
@@ -35,7 +35,7 @@ class Client:
         else:
             context = self.context
 
-        request['context'] = context.serialize()
+        request['context'] = context.serialize().hex()
 
         if 'data' in request:
             request['data'] = self.encrypt_data(request['data'], context)

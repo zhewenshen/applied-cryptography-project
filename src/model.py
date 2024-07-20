@@ -32,10 +32,10 @@ class EncryptedLR:
 
     def get_parameters(self):
         return {
-            'weight': self.weight.serialize(),
-            'bias': self.bias.serialize()
+            'weight': self.weight.serialize().hex(),
+            'bias': self.bias.serialize().hex()
         }
 
     def set_parameters(self, params):
-        self.weight = ts.ckks_vector_from(params['context'], params['weight'])
-        self.bias = ts.ckks_vector_from(params['context'], params['bias'])
+        self.weight = ts.ckks_vector_from(params['context'], bytes.fromhex(params['weight']))
+        self.bias = ts.ckks_vector_from(params['context'], bytes.fromhex(params['bias']))

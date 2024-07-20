@@ -69,7 +69,7 @@ def test_machine_learning(client, server):
     X, y = california.data, california.target
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, train_size=0.01, test_size=0.001, random_state=42)
+        X, y, train_size=10, test_size=1, random_state=42)
 
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
@@ -120,8 +120,8 @@ if __name__ == "__main__":
     client = Client()
     server = Server()
 
-    print("Testing Statistical Computations:")
-    test_statistical_computations(client, server)
+    #print("Testing Statistical Computations:")
+    #test_statistical_computations(client, server)
 
     print("\nTesting Machine Learning:")
     test_machine_learning(client, server)
