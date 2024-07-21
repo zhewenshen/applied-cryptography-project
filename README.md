@@ -40,7 +40,7 @@ For sample usage please refer to [`src/main.py`](src/main.py)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [`LICENSE`](LICENSE) file for details.
 
 ## How to Cite
 
@@ -48,7 +48,7 @@ If you use this project in your work, please cite it as follows:
 
 ```bibtex
 @software{TBD,
-  author = {Zhewen Shen, David Wong, Alex Vong and Luke Johnston },
+  author = {Zhewen Shen, David Wong, Alex Vong and Luke Johnston},
   title = {TBD},
   year = {2024},
   url = {https://github.com/zhewenshen/applied-cryptography-project},
