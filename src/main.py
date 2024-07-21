@@ -1,3 +1,4 @@
+import base64
 import random
 import numpy as np
 from sklearn.datasets import fetch_california_housing
@@ -7,7 +8,31 @@ from client import Client
 from server import Server
 from cryptography.fernet import Fernet
 from utils import serialize, deserialize
+import base64
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import dh
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.fernet import Fernet
 
+def generate_parameters():
+    parameters = dh.generate_parameters(generator=2, key_size=2048)
+    return parameters
+
+def generate_private_key(parameters):
+    return parameters.generate_private_key()
+
+def get_public_key(private_key):
+    return private_key.public_key()
+
+def generate_shared_key(private_key, peer_public_key):
+    shared_key = private_key.exchange(peer_public_key)
+    derived_key = HKDF(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=None,
+        info=b'handshake data',
+    ).derive(shared_key)
+    return base64.urlsafe_b64encode(derived_key)
 
 def test_statistical_computations(client, server):
     datasets = [
@@ -117,19 +142,23 @@ def test_machine_learning(client, server):
     if response['status'] == 'success':
         print(f"Actual value: {y_test[0]}")
 
-
 if __name__ == "__main__":
     client = Client()
     server = Server()
-    key = Fernet.generate_key();
-    client.set_key(key)
-    server.set_key(key)
 
-    # cur_key = Fernet(key)
-    # serialized_request = serialize("beep")
-    # cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
-    # request = cur_key.decrypt(cipher_text)
-    # print(request)
+    parameters = generate_parameters()
+
+    client_private_key = generate_private_key(parameters)
+    client_public_key = get_public_key(client_private_key)
+
+    server_private_key = generate_private_key(parameters)
+    server_public_key = get_public_key(server_private_key)
+
+    client_shared_key = generate_shared_key(client_private_key, server_public_key)
+    server_shared_key = generate_shared_key(server_private_key, client_public_key)
+
+    client.set_key(client_shared_key)
+    server.set_key(server_shared_key)
 
     print("Testing Statistical Computations:")
     test_statistical_computations(client, server)
