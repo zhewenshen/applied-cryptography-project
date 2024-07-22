@@ -42,7 +42,8 @@ class Client:
         else:
             context = self.context
 
-        request['context'] = context.serialize().hex()
+        # make it absolutely clear the secret key is never serialised and sent
+        request['context'] = context.serialize(save_secret_key=False).hex()
 
         if 'data' in request:
             request['data'] = self.encrypt_data(request['data'], context)
