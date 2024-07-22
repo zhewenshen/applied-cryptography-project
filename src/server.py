@@ -1,7 +1,9 @@
 from typing import Any, Dict, List
-from utils import serialize, deserialize
+from utils import serialize, serialize2, deserialize, dbg_break, \
+    validate_and_extract_header_from_client_hello
 from model import EncryptedLR
 from cryptography.fernet import Fernet
+import pysodium as nacl
 import tenseal as ts
 
 
@@ -15,14 +17,41 @@ class Server:
         self.models: Dict[str, EncryptedLR] = {}
         self.key = b""
 
-    def set_key(self, key: bytes):
-        self.key = key
+    #def set_key(self, key: bytes):
+    #    self.key = key
+
+    def set_server_key_pair(self, server_pk, server_sk):
+        self.server_pk = server_pk
+        self.server_sk = server_sk
+
+    def set_client_pk(self, client_pk):
+        self.client_pk = client_pk
+
+    def hello(self, request):
+        (recv_key, sent_key) = \
+            nacl.crypto_kx_server_session_keys(server_pk=self.server_pk,
+                                               server_sk=self.server_sk,
+                                               client_pk=self.client_pk)
+        print(f'received Client Hello: {request}')
+        header = validate_and_extract_header_from_client_hello(request)
+        self.state = \
+            nacl.crypto_secretstream_xchacha20poly1305_init_pull(header=header,
+                                                                 key=recv_key)
+        response = serialize2({'status': 'success', 'message': 'Client Hello ACKed'})
+        encrypted_response = \
+            nacl.crypto_secretstream_xchacha20poly1305_push(state=self.state,
+                                                            message=response,
+                                                            ad=None,
+                                                            tag=nacl.crypto_secretstream_xchacha20poly1305_TAG_REKEY)
+        return encrypted_response
 
     def handle_request(self, request: str) -> str:
         cur_key = Fernet(self.key)
         request = cur_key.decrypt(request)
         request_dict = deserialize(request)
         context = ts.context_from(bytes.fromhex(request_dict['context']))
+
+        print(request_dict['action'])
 
         if request_dict['action'] == 'store':
             return cur_key.encrypt(serialize(self.store_data(context, request_dict['key'], request_dict['data'], request_dict['size'])).encode('utf-8'))

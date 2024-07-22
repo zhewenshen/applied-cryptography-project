@@ -1,10 +1,11 @@
 import tenseal as ts
 from cryptography.fernet import Fernet
+import pysodium as nacl
 from context_gen import TenSEALContext
 from rich.console import Console
 from rich.progress import track
 from server import Server
-from utils import serialize, deserialize
+from utils import serialize, serialize2, deserialize, dbg_break, validate_server_hello
 from typing import List, Dict, Any
 import numpy as np
 
@@ -18,9 +19,40 @@ class Client:
         self.console = Console()
         self.key = b""
     
-    def set_key(self, key: bytes):
-        self.key = key
+    #def set_key(self, key: bytes):
+    #    self.key = key
 
+    def set_client_key_pair(self, client_pk, client_sk):
+        self.client_pk = client_pk
+        self.client_sk = client_sk
+
+    def set_server_pk(self, client_pk):
+        self.server_pk = client_pk
+
+    def hello(self, server):
+        (recv_key, sent_key) = \
+            nacl.crypto_kx_client_session_keys(client_pk=self.client_pk,
+                                               client_sk=self.client_sk,
+                                               server_pk=self.server_pk)
+        (state, header) = \
+            nacl.crypto_secretstream_xchacha20poly1305_init_push(sent_key)
+        self.state = state
+        data = header.hex()
+        request = {
+            'action': 'hello',
+            'request_type': 'normal',
+            'data': data,
+            'size': len(data)
+        }
+        encrypted_response = server.hello(serialize2(request))
+        response, tag = \
+            nacl.crypto_secretstream_xchacha20poly1305_pull(state=self.state,
+                                                            ciphertext=encrypted_response,
+                                                            ad=None)
+        validate_server_hello(response)
+        assert tag == nacl.crypto_secretstream_xchacha20poly1305_TAG_REKEY, \
+            'must re-key after every message'
+        print(f'server responses Client Hello: {response}')
 
     def encrypt_data(self, data: List[float], context: ts.Context) -> str:
         encrypted_data = ts.ckks_vector(context, data)
@@ -60,12 +92,13 @@ class Client:
                 'x': [self.encrypt_data(x, context) for x in request['inference_data']['x']]
             }
 
-        cur_key = Fernet(self.key)
-        serialized_request = serialize(request)
-        cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
+        #cur_key = Fernet(self.key)
+        #
+        #serialized_request = serialize(request)
+        #cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
         # cipher_text = b"abcd" + cipher_text
-        response = server.handle_request(cipher_text)
-        response_dict = deserialize(cur_key.decrypt(response))
+        #response = server.handle_request(cipher_text)
+        #response_dict = deserialize(cur_key.decrypt(response))
 
         if 'result' in response_dict:
             if isinstance(response_dict['result'], str):
