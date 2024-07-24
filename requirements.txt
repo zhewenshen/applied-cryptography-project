@@ -1,7 +1,7 @@
 cryptography==42.0.8
 jsonschema==4.23.0
 numpy==2.0.0
-pysodium=0.7.17
+pysodium==0.7.17
 pytest==8.2.2
 rich==13.7.1
 scikit_learn==1.5.1
