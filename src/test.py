@@ -6,16 +6,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from client import Client
 from server import Server
-from cryptography.fernet import Fernet
 
 
 @pytest.fixture
 def client_server():
     client = Client()
     server = Server()
-    key = Fernet.generate_key();
-    client.set_key(key)
-    server.set_key(key)
     return client, server
 
 

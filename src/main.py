@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from client import Client
 from server import Server
-#from cryptography.fernet import Fernet
 import pysodium as nacl
 from utils import serialize, deserialize, dbg_break
 
@@ -137,16 +136,6 @@ if __name__ == "__main__":
     # C -> S: "Client Hello" || client-header
     # S -> C: "Server Hello || server-header
     client.hello(server)
-
-    #key = Fernet.generate_key();
-    #client.set_key(key)
-    #server.set_key(key)
-
-    # cur_key = Fernet(key)
-    # serialized_request = serialize("beep")
-    # cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
-    # request = cur_key.decrypt(cipher_text)
-    # print(request)
 
     print("Testing Statistical Computations:")
     test_statistical_computations(client, server)

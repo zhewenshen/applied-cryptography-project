@@ -1,12 +1,10 @@
 import tenseal as ts
-from cryptography.fernet import Fernet
 import pysodium as nacl
 from context_gen import TenSEALContext
 from rich.console import Console
 from rich.progress import track
 from server import Server
-from utils import serialize, serialize2, deserialize, deserialize2, dbg_break, \
-    validate_server_hello, validate_tag
+from utils import serialize, deserialize, validate_server_hello, validate_tag
 from typing import List, Dict, Any
 import numpy as np
 
@@ -20,9 +18,6 @@ class Client:
         self.console = Console()
         self.key = b""
     
-    #def set_key(self, key: bytes):
-    #    self.key = key
-
     def set_client_key_pair(self, client_pk, client_sk):
         self.client_pk = client_pk
         self.client_sk = client_sk
@@ -59,7 +54,7 @@ class Client:
             'data': data,
             'size': len(data)
         }
-        encrypted_response = server.hello(serialize2(request))
+        encrypted_response = server.hello(serialize(request))
         response = self.nacl_decrypt(encrypted_response)
         validate_server_hello(response)
         print(f'server responses Client Hello: {response}')
@@ -102,18 +97,10 @@ class Client:
                 'x': [self.encrypt_data(x, context) for x in request['inference_data']['x']]
             }
 
-        encrypted_request = self.nacl_encrypt(serialize2(request))
+        encrypted_request = self.nacl_encrypt(serialize(request))
         encrypted_response = server.handle_request(encrypted_request)
         response = self.nacl_decrypt(encrypted_response)
-        response_dict = deserialize2(response) # FIXME: validate response
-
-        #cur_key = Fernet(self.key)
-        #
-        #serialized_request = serialize(request)
-        #cipher_text = cur_key.encrypt(serialized_request.encode('utf-8'))
-        # cipher_text = b"abcd" + cipher_text
-        #response = server.handle_request(cipher_text)
-        #response_dict = deserialize(cur_key.decrypt(response))
+        response_dict = deserialize(response) # FIXME: validate response
 
         if 'result' in response_dict:
             if isinstance(response_dict['result'], str):

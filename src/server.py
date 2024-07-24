@@ -1,8 +1,7 @@
 from typing import Any, Dict, List
-from utils import serialize, serialize2, deserialize, deserialize2, dbg_break, \
+from utils import serialize, deserialize, \
     validate_and_extract_header_from_client_hello, validate_tag
 from model import EncryptedLR
-from cryptography.fernet import Fernet
 import pysodium as nacl
 import tenseal as ts
 
@@ -16,9 +15,6 @@ class Server:
         self.training_data: Dict[str, Dict[str, List[ts.CKKSVector]]] = {}
         self.models: Dict[str, EncryptedLR] = {}
         self.key = b""
-
-    #def set_key(self, key: bytes):
-    #    self.key = key
 
     def set_server_key_pair(self, server_pk, server_sk):
         self.server_pk = server_pk
@@ -51,44 +47,40 @@ class Server:
         self.state = \
             nacl.crypto_secretstream_xchacha20poly1305_init_pull(header=header,
                                                                  key=recv_key)
-        response = serialize2({'status': 'success', 'message': 'Client Hello ACKed'})
+        response = serialize({'status': 'success', 'message': 'Client Hello ACKed'})
         return self.nacl_encrypt(response)
 
     def handle_request(self, encrypted_request: bytes) -> bytes:
         request = self.nacl_decrypt(encrypted_request)
-        request_dict = deserialize2(request) # FIXME: validate request
-
-        #cur_key = Fernet(self.key)
-        #request = cur_key.decrypt(request)
-        #request_dict = deserialize(request)
+        request_dict = deserialize(request) # FIXME: validate request
         context = ts.context_from(bytes.fromhex(request_dict['context']))
 
         if request_dict['action'] == 'store':
-            return self.nacl_encrypt(serialize2(self.store_data(context, request_dict['key'], request_dict['data'], request_dict['size'])))
+            return self.nacl_encrypt(serialize(self.store_data(context, request_dict['key'], request_dict['data'], request_dict['size'])))
         elif request_dict['action'] == 'compute_average':
-            return self.nacl_encrypt(serialize2(self.compute_average(context, request_dict['key'])))
+            return self.nacl_encrypt(serialize(self.compute_average(context, request_dict['key'])))
         elif request_dict['action'] == 'compute_variance':
-            return self.nacl_encrypt(serialize2(self.compute_variance(context, request_dict['key'])))
+            return self.nacl_encrypt(serialize(self.compute_variance(context, request_dict['key'])))
         elif request_dict['action'] == 'sd':
-            return self.nacl_encrypt(serialize2(self.compute_standard_deviation(context, request_dict['key'])))
+            return self.nacl_encrypt(serialize(self.compute_standard_deviation(context, request_dict['key'])))
         elif request_dict['action'] == 'compute_overall_average':
-            return self.nacl_encrypt(serialize2(self.compute_overall_average(context, request_dict['keys'])))
+            return self.nacl_encrypt(serialize(self.compute_overall_average(context, request_dict['keys'])))
         elif request_dict['action'] == 'store_training_data':
-            return self.nacl_encrypt(serialize2(self.store_training_data(context, request_dict['key'], request_dict['training_data'])))
+            return self.nacl_encrypt(serialize(self.store_training_data(context, request_dict['key'], request_dict['training_data'])))
         elif request_dict['action'] == 'initialize_model':
-            return self.nacl_encrypt(serialize2(self.initialize_model(context, request_dict['key'], request_dict['n_features'])))
+            return self.nacl_encrypt(serialize(self.initialize_model(context, request_dict['key'], request_dict['n_features'])))
         elif request_dict['action'] == 'train_epoch':
-            return self.nacl_encrypt(serialize2(self.train_epoch(context, request_dict['key'])))
+            return self.nacl_encrypt(serialize(self.train_epoch(context, request_dict['key'])))
         elif request_dict['action'] == 'get_model_params':
-            return self.nacl_encrypt(serialize2(self.get_model_params(request_dict['key'])))
+            return self.nacl_encrypt(serialize(self.get_model_params(request_dict['key'])))
         elif request_dict['action'] == 'set_model_params':
-            return self.nacl_encrypt(serialize2(self.set_model_params(context, request_dict['key'], request_dict['params'])))
+            return self.nacl_encrypt(serialize(self.set_model_params(context, request_dict['key'], request_dict['params'])))
         elif request_dict['action'] == 'predict':
-            return self.nacl_encrypt(serialize2(self.predict(context, request_dict['key'], request_dict['inference_data']['x'])))
+            return self.nacl_encrypt(serialize(self.predict(context, request_dict['key'], request_dict['inference_data']['x'])))
         elif request_dict['action'] == 'predict_all':
-            return self.nacl_encrypt(serialize2(self.predict_all(context, request_dict['key'], request_dict['inference_data']['x'])))
+            return self.nacl_encrypt(serialize(self.predict_all(context, request_dict['key'], request_dict['inference_data']['x'])))
         else:
-            return self.nacl_encrypt(serialize2({'status': 'error', 'message': 'Invalid action'}))
+            return self.nacl_encrypt(serialize({'status': 'error', 'message': 'Invalid action'}))
 
     def store_data(self, context: ts.Context, key: str, data: str, size: int) -> Dict[str, str]:
         if key in self.storage:
