@@ -1,6 +1,7 @@
 import base64
 import json
 from jsonschema import validate
+import pysodium as nacl
 
 def serialize(obj):
     return json.dumps(obj)
@@ -55,3 +56,7 @@ def validate_server_hello(serialized):
     schema = {'status': 'success', 'message': 'Client Hello ACKed'}
     d = deserialize2(serialized)
     validate(d, schema)
+
+def validate_tag(tag):
+    assert tag == nacl.crypto_secretstream_xchacha20poly1305_TAG_REKEY, \
+        'must re-key after every message'

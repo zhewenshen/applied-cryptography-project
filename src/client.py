@@ -5,7 +5,8 @@ from context_gen import TenSEALContext
 from rich.console import Console
 from rich.progress import track
 from server import Server
-from utils import serialize, serialize2, deserialize, dbg_break, validate_server_hello
+from utils import serialize, serialize2, deserialize, deserialize2, dbg_break, \
+    validate_server_hello, validate_tag
 from typing import List, Dict, Any
 import numpy as np
 
@@ -29,6 +30,20 @@ class Client:
     def set_server_pk(self, client_pk):
         self.server_pk = client_pk
 
+    def nacl_encrypt(self, message):
+        return nacl.crypto_secretstream_xchacha20poly1305_push(state=self.state,
+                                                               message=message,
+                                                               ad=None,
+                                                               tag=nacl.crypto_secretstream_xchacha20poly1305_TAG_REKEY)
+
+    def nacl_decrypt(self, ciphertext):
+        message, tag = \
+            nacl.crypto_secretstream_xchacha20poly1305_pull(state=self.state,
+                                                            ciphertext=ciphertext,
+                                                            ad=None)
+        validate_tag(tag)
+        return message
+
     def hello(self, server):
         (recv_key, sent_key) = \
             nacl.crypto_kx_client_session_keys(client_pk=self.client_pk,
@@ -45,13 +60,8 @@ class Client:
             'size': len(data)
         }
         encrypted_response = server.hello(serialize2(request))
-        response, tag = \
-            nacl.crypto_secretstream_xchacha20poly1305_pull(state=self.state,
-                                                            ciphertext=encrypted_response,
-                                                            ad=None)
+        response = self.nacl_decrypt(encrypted_response)
         validate_server_hello(response)
-        assert tag == nacl.crypto_secretstream_xchacha20poly1305_TAG_REKEY, \
-            'must re-key after every message'
         print(f'server responses Client Hello: {response}')
 
     def encrypt_data(self, data: List[float], context: ts.Context) -> str:
@@ -91,6 +101,11 @@ class Client:
                 # 'x': [self.encrypt_data(x, context) for x in track(request['inference_data']['x'], description="Encrypting inference data", console=self.console)]
                 'x': [self.encrypt_data(x, context) for x in request['inference_data']['x']]
             }
+
+        encrypted_request = self.nacl_encrypt(serialize2(request))
+        encrypted_response = server.handle_request(encrypted_request)
+        response = self.nacl_decrypt(encrypted_response)
+        response_dict = deserialize2(response) # FIXME: validate response
 
         #cur_key = Fernet(self.key)
         #

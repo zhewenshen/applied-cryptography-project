@@ -138,8 +138,6 @@ if __name__ == "__main__":
     # S -> C: "Server Hello || server-header
     client.hello(server)
 
-    dbg_break()
-
     #key = Fernet.generate_key();
     #client.set_key(key)
     #server.set_key(key)
