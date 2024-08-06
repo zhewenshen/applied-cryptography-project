@@ -11,9 +11,9 @@ from utils import serialize, deserialize, dbg_break
 
 def test_statistical_computations(client, server):
     datasets = [
-        [random.uniform(0, 100) for _ in range(347)],
-        [random.uniform(0, 100) for _ in range(443)],
-        [random.uniform(0, 100) for _ in range(42)]
+        [random.uniform(0, 6453) for _ in range(347)],
+        [random.uniform(0, 6453) for _ in range(443)],
+        [random.uniform(0, 6453) for _ in range(42)]
     ]
 
     all_data = []
@@ -56,14 +56,6 @@ def test_statistical_computations(client, server):
     })
     print(f"\nCompute variance response: {response}")
     print(f"Actual variance: {np.var(datasets[1])}")
-
-    response = client.send_request(server, {
-        'action': 'sd',
-        'request_type': 'normal',
-        'key': 'dataset_2'
-    })
-    print(f"\nCompute standard deviation response: {response}")
-    print(f"Actual standard deviation: {np.std(datasets[2])}")
 
 
 def test_machine_learning(client, server):
@@ -119,8 +111,11 @@ def test_machine_learning(client, server):
 
 
 if __name__ == "__main__":
-    # FIXME: it's probably better to pass key and init ratchet in constructor
-    # rather than calling them manually
+    # This is just a simulation of the protocol
+    # In a real-world scenario, the client and server would be running on different machines and communicating over a secure channel
+    # The ML model would need to be trained on a full sized dataset with many epochs
+    # it is just a toy example here - hence inference is not accurate
+    
     client = Client()
     server = Server()
 
@@ -133,8 +128,6 @@ if __name__ == "__main__":
     server.set_server_key_pair(server_pk, server_sk)
     server.set_client_pk(client_pk)
 
-    # C -> S: "Client Hello" || client-header
-    # S -> C: "Server Hello || server-header
     client.hello(server)
 
     print("Testing Statistical Computations:")

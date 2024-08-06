@@ -100,14 +100,13 @@ class Client:
         encrypted_request = self.nacl_encrypt(serialize(request))
         encrypted_response = server.handle_request(encrypted_request)
         response = self.nacl_decrypt(encrypted_response)
-        response_dict = deserialize(response) # FIXME: validate response
+        response_dict = deserialize(response)
 
         if 'result' in response_dict:
             if isinstance(response_dict['result'], str):
                 response_dict['result'] = self.decrypt_data(
                     response_dict['result'], context)
             elif isinstance(response_dict['result'], list):
-                print(type(response_dict['result']))
                 response_dict['result'] = [self.decrypt_data(
                     r, context) for r in response_dict['result']]
 

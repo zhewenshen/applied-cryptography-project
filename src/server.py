@@ -52,7 +52,7 @@ class Server:
 
     def handle_request(self, encrypted_request: bytes) -> bytes:
         request = self.nacl_decrypt(encrypted_request)
-        request_dict = deserialize(request) # FIXME: validate request
+        request_dict = deserialize(request)
         context = ts.context_from(bytes.fromhex(request_dict['context']))
 
         if request_dict['action'] == 'store':
