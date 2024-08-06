@@ -1,0 +1,40 @@
+received Client Hello: b'{"action": "hello", "request_type": "normal", "data": "793f86d77650b37eacd44e428be6875756119bea8266649c", "size": 48}'
+server responses Client Hello: b'{"status": "success", "message": "Client Hello ACKed"}'
+Testing Statistical Computations:
+
+Dataset 1:
+Store response: {'status': 'success', 'message': 'Data stored'}
+Compute average response: {'status': 'success', 'result': [3075.785360440735]}
+Actual average: 3075.7849476500965
+
+Dataset 2:
+Store response: {'status': 'success', 'message': 'Data stored'}
+Compute average response: {'status': 'success', 'result': [3196.535880955232]}
+Actual average: 3196.535452340888
+
+Dataset 3:
+Store response: {'status': 'success', 'message': 'Data stored'}
+Compute average response: {'status': 'success', 'result': [3312.178334057564]}
+Actual average: 3312.1778898967905
+
+Compute overall average response: {'status': 'success', 'result': [3152.012506917482]}
+Actual overall average: 3152.0120836505553
+
+Compute variance response: {'status': 'success', 'result': [321542.3898871748]}
+Actual variance: 3467268.9700734555
+
+Testing Machine Learning:
+
+Store training data response: {'status': 'success', 'message': 'Training data stored'}
+Initialize model response: {'status': 'success', 'message': 'Model initialized'}
+====== Epoch 1/2 LOG ====== 
+Epoch 1 training response: {'status': 'success', 'message': 'Epoch completed'}
+Epoch 1 bootstrapping response: {'status': 'success', 'message': 'Model parameters updated'}
+Epoch 1 MSE: 3.359445272757371e+76
+====== Epoch 2/2 LOG ====== 
+Epoch 2 training response: {'status': 'success', 'message': 'Epoch completed'}
+Epoch 2 bootstrapping response: {'status': 'success', 'message': 'Model parameters updated'}
+Epoch 2 MSE: 6.930895823170347e+75
+Training epochs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:30
+Prediction response: {'status': 'success', 'result': [-5.005107231058342e+37]}
+Actual value: 0.477
