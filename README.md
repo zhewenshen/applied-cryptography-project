@@ -48,9 +48,9 @@ This project is licensed under the MIT License - see the [`LICENSE`](LICENSE) fi
 If you use this project in your work, please cite it as follows:
 
 ```bibtex
-@software{Privacy-Preserving Data Analytics using Fully Homomorphic Encryption,
+@software{cs6453,
   author = {Zhewen Shen, David Wong, Alex Vong and Luke Johnston},
-  title = {TBD},
+  title = {Privacy-Preserving Data Analytics using Fully Homomorphic Encryption},
   year = {2024},
   url = {https://github.com/zhewenshen/applied-cryptography-project},
 }
